@@ -79,14 +79,14 @@ class DispatchFactory(protocol.Factory, KObject):
     """
     protocol = DispatchProtocol
 
-    def set_dispatcher(self, dispatcher):
+    def set_receiver(self, receiver):
         """
         Set the ReceiverFactory instance of this class
 
-        .. dispatcher:: An instance of Receiver factory
+        .. receiver:: An instance of Receiver factory
         """
-        self.dispatcher = dispatcher
+        self.receiver = receiver
 
     def buildProtocol(self, addr):
-        p = self.protocol(self.dispatcher)
+        p = self.protocol(self.receiver)
         return p

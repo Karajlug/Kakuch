@@ -21,6 +21,7 @@ from twisted.internet import reactor
 
 from base import KObject
 from factories import SSLContextFactory
+from kakuch.protocols import ReceiverFactory, DispatchFactory
 
 
 class DispatchServer(KObject):
@@ -51,14 +52,23 @@ class DispatchServer(KObject):
         self.logger.info("SSL CERT: %s" % self.cert)
         self.logger.info("CA CERT: %s" % self.cacert)
 
+        self.target = DispatchFactory()
+        self.receiver = ReceiverFactory()
+
+        self.receiver.set_target(self.target)
+        self.target.set_receiver(self.receiver)
+
         context_factory = SSLContextFactory(self.key,
                                             self.cert)
         context_factory.cacert = self.cacert
 
-        #reactor.listenSSL(int(self.my_port),
-        #                  self.event_receiver,
-        #                  context_factory)
+        reactor.listenSSL(int(self.my_port),
+                          self.receiver,
+                          context_factory)
 
+        reactor.connoectTCP(self.target_host,
+                            int(self.target_port),
+                            self.target)
 
     def run(self):
 
