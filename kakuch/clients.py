@@ -21,23 +21,23 @@ from twisted.internet import reactor
 
 from kakuch.base import KObject
 from kakuch.factories import SSLContextFactory
-from kakuch.protocols import ReceiverFactory, DispatchClientFactory
+from kakuch.protocols import ReceiverClientFactory, DispatchFactory
 
 
-class DispatchServer(KObject):
+class DispatchClient(KObject):
     """
-    Dispatch Server class. This class is responsible for dispatching incoming
-    traffic to the target host (combination of IP and port ofcourse).
+    Dispatch client class. This class is responsible for dispatching client
+    traffic to the dispatcher server and deliver back to client
     """
-    def __init__(self, config={}, target_host="127.0.0.1",
-                 target_port="7777", my_host="127.0.0.1",
+    def __init__(self, config={}, server_host="127.0.0.1",
+                 server_port="7777", my_host="127.0.0.1",
                  my_port="8888", sslkey=None, sslcert=None,
                  cacert=None, mode="ssl"):
 
         self.config = config
 
-        self.target_host = self.config.get("target_host", target_host)
-        self.target_port = self.config.get("target_port", target_port)
+        self.server_host = self.config.get("server_host", server_host)
+        self.server_port = self.config.get("server_port", server_port)
 
         self.my_host = self.config.get("my_host", my_host)
         self.my_port = self.config.get("my_port", my_port)
@@ -52,30 +52,31 @@ class DispatchServer(KObject):
         self.logger.info("SSL CERT: %s" % self.cert)
         self.logger.info("CA CERT: %s" % self.cacert)
 
-        self.target = DispatchClientFactory()
-        self.receiver = ReceiverFactory()
+        self.server = DispatchFactory()
+        self.receiver = ReceiverClientFactory()
 
-        self.receiver.set_target(self.target)
-        self.target.set_receiver(self.receiver)
+        self.receiver.set_target(self.server)
+        self.server.set_receiver(self.receiver)
 
         context_factory = SSLContextFactory(self.key,
                                             self.cert)
         context_factory.cacert = self.cacert
 
-        reactor.listenSSL(int(self.my_port),
+        reactor.listenTCP(int(self.my_port),
                           self.receiver,
-                          context_factory)
+                          interface=self.my_host)
 
-        reactor.connectTCP(self.target_host,
-                            int(self.target_port),
-                            self.target)
+        reactor.connectSSL(self.server_host,
+                           int(self.server_port),
+                           self.receiver,
+                           context_factory)
 
     def run(self):
 
         self.logger.info("Running using %s mode..." % self.mode)
         self.logger.info("Listening to %s:%s ..." % (self.my_host,
                                                      self.my_port))
-        self.logger.info("Dispatching to %s:%s ..." % (self.target_host,
-                                                     self.target_port))
+        self.logger.info("Dispatching to %s:%s ..." % (self.server_host,
+                                                       self.server_port))
 
         reactor.run()

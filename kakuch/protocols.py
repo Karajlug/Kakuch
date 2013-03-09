@@ -56,6 +56,25 @@ class ReceiverFactory(protocol.Factory, KObject):
         return p
 
 
+class ReceiverClientFactory(protocol.ClientFactory, KObject):
+    """
+    This receiver factory use ReceiverProtocl to get data from Kakuch client
+    and dispatch them to the target host
+
+    """
+    protocol = ReceiverProtocol
+
+    def set_target(self, target):
+        """
+        ..target:: The DispatchFactory instance that will be connect to the target host
+        """
+        self.target = target
+
+    def buildProtocol(self, addr):
+        p = self.protocol(self.target)
+        return p
+
+
 class DispatchProtocol(protocol.Protocol, KObject):
     """
     Dispatch protocol just dispatch the recieved data from the receiver factory
@@ -73,6 +92,26 @@ class DispatchProtocol(protocol.Protocol, KObject):
 
 
 class DispatchFactory(protocol.Factory, KObject):
+    """
+    This class placed between target host and Dispatcher code and deliver the
+    client data to the target.
+    """
+    protocol = DispatchProtocol
+
+    def set_receiver(self, receiver):
+        """
+        Set the ReceiverFactory instance of this class
+
+        .. receiver:: An instance of Receiver factory
+        """
+        self.receiver = receiver
+
+    def buildProtocol(self, addr):
+        p = self.protocol(self.receiver)
+        return p
+
+
+class DispatchClientFactory(protocol.ClientFactory, KObject):
     """
     This class placed between target host and Dispatcher code and deliver the
     client data to the target.
