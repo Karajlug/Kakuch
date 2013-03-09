@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -----------------------------------------------------------------------------
 #    Kakuch - Traffic wrapper application
 #    Copyright (C) 2013 Sameer Rahmani <lxsameer@gnu.org>
@@ -17,17 +16,17 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -----------------------------------------------------------------------------
-import logging
+
 from OpenSSL import SSL
 
-from twisted.internet import reactor, ssl
+from twisted.internet import ssl
 
 from base import KObject
 
 
-class SSLFactory(ssl.DefaultOpenSSLContextFactory, KObject):
+class SSLContextFactory(ssl.DefaultOpenSSLContextFactory, KObject):
     """
-    SSL factory class for twisted
+    SSL context factory class for twisted
     """
     cacert = None
 
