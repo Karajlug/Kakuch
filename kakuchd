@@ -18,8 +18,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -----------------------------------------------------------------------------
 
-from kakuch.servers import DispatchServer
-
+from kakuch.application import Kakuch
 
 default_config = {
     "server": True,
@@ -28,11 +27,14 @@ default_config = {
     "bind_port": 9100,
 }
 
-a = DispatchServer(target_host="127.0.0.1",
-                   target_port="6666",
-                   my_host="127.0.0.1",
-                   my_port="7777",
-                   sslkey="ssl/server/server.key",
-                   sslcert="ssl/server/server.crt",
-                   cacert="ssl/CA.crt")
+z = {"target_host": "127.0.0.1",
+     "target_port": "6666",
+     "my_host": "127.0.0.1",
+     "my_port":"7777",
+     "sslkey": "ssl/server/server.key",
+     "sslcert": "ssl/server/server.crt",
+     "cacert": "ssl/CA.crt",
+     }
+
+a = Kakuch()
 a.run()

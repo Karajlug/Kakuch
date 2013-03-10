@@ -32,6 +32,13 @@ class ReceiverProtocol(protocol.Protocol, KObject):
     def __init__(self, target):
         self.target = target
 
+    def connectionMade(self):
+        """
+        Each time a client connect to Receiver, it put itself as a clientfor
+        for the dispatcher.
+        """
+        self.target.client = self
+
     def dataReceived(self, data):
         self.logger.debug("Send data to %s" % self.target)
         self.target.send(data)
@@ -97,6 +104,7 @@ class DispatchFactory(protocol.Factory, KObject):
     client data to the target.
     """
     protocol = DispatchProtocol
+    client = None
 
     def set_receiver(self, receiver):
         """
@@ -109,6 +117,9 @@ class DispatchFactory(protocol.Factory, KObject):
     def buildProtocol(self, addr):
         p = self.protocol(self.receiver)
         return p
+
+    def send(self, data):
+        self.client.transport.write(data)
 
 
 class DispatchClientFactory(protocol.ClientFactory, KObject):

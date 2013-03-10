@@ -42,9 +42,9 @@ class DispatchServer(KObject):
         self.my_host = self.config.get("my_host", my_host)
         self.my_port = self.config.get("my_port", my_port)
 
-        self.key = self.config.get("ssl_key", sslkey)
-        self.cert = self.config.get("ssl_cert", sslcert)
-        self.cacert = self.config.get("ca_cert", cacert)
+        self.key = self.config.get("sslkey", sslkey)
+        self.cert = self.config.get("sslcert", sslcert)
+        self.cacert = self.config.get("cacert", cacert)
 
         self.mode = config.get("mode", mode)
 

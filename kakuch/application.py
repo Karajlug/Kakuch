@@ -1,0 +1,126 @@
+# -----------------------------------------------------------------------------
+#    Kakuch - Traffic wrapper application
+#    Copyright (C) 2013 Sameer Rahmani <lxsameer@gnu.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# -----------------------------------------------------------------------------
+
+import json
+import logging
+import logging.handlers
+
+from argparse import ArgumentParser
+
+from kakuch.servers import DispatchServer
+from kakuch.clients import DispatchClient
+
+
+class Kakuch(object):
+    """
+    Kakuch application main class.
+    """
+
+    DESC = "Kakuch - Traffic wrapper application"
+    FORMAT = '[%(asctime)s] %(module)s - %(lineno)d [%(levelname)s]:  %(message)s'
+
+    def __init__(self):
+        self._setup_arguments()
+        self._parse_config()
+        self._setup_logger()
+
+    def _setup_arguments(self):
+        """
+        Setup command line parser.
+        """
+        self.parser = ArgumentParser(
+            description=self.DESC)
+
+        self.parser.add_argument("-d", "--debug",
+                                 action="store_true",
+                                 default=False,
+                                 help="Turn on debug mode."
+                                 )
+
+        self.parser.add_argument("-c", "--config",
+                                 default="/etc/kakuch/kakuch.json",
+                                 dest="config",
+                                 help="Use CONFIG as configuration file."
+                                 )
+
+        self.args = self.parser.parse_args()
+        return
+
+    def _setup_logger(self):
+        """
+        Setup logger.
+        """
+
+        if self.args.debug:
+            level = 0
+        else:
+            level = self.config.get("log_level", 40)
+
+        logging.basicConfig(format=self.FORMAT,
+                            level=level)
+
+        self.logger = logging.getLogger("Kakuch")
+
+        filename = self.config.get("log_file", None)
+        if filename:
+            hdlr = logging.handlers.RotatingFileHandler(filename,
+                                                mode='w+',
+                                                maxBytes=10485760,  # 10MB
+                                                backupCount=5)
+            hdlr.setFormatter(logging.Formatter(self.FORMAT))
+
+        self.logger.addHandler(hdlr)
+        return
+
+    def _parse_config(self):
+        """
+        Parse the json configuration file.
+        """
+        try:
+            fd = open(self.args.config)
+
+        except IOError:
+            print("Config file '%s' does not exists." % (
+                self.args.config))
+            exit(1)
+
+        try:
+
+            self.config = json.load(fd)
+        except ValueError:
+            fd.close()
+            print("Config file '%s' is not a json file." % (
+                self.args.config))
+            exit(1)
+
+        fd.close()
+
+    def run(self):
+        self.logger.info("Hi, Kakuch is here.")
+
+        client = self.config.get("client", False)
+        if client:
+            app = DispatchClient(config=self.config)
+
+        app = DispatchServer(config=self.config)
+
+        try:
+            app.run()
+        except KeyboardInterrupt:
+            self.logger.info("Bye bye")
