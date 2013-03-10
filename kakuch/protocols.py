@@ -23,91 +23,6 @@ from twisted.internet import defer
 from kakuch.base import KObject
 
 
-class ReceiverProtocol(protocol.Protocol, KObject):
-    """
-    Receiver protocol just dispatch the received data after client verification
-    to the target host
-
-    ..target:: The DispatchFactory instance that will be connect to the target host
-    """
-    def __init__(self, target):
-        self.target = target
-
-    def connectionMade(self):
-        """
-        Each time a client connect to Receiver, it put itself as a clientfor
-        for the dispatcher.
-        """
-        self.target.client = self
-
-    def dataReceived(self, data):
-        self.logger.debug("Received data: %s" % data)
-        self.target.send(data)
-
-
-class ReceiverFactory(protocol.Factory, KObject):
-    """
-    This receiver factory use ReceiverProtocl to get data from Kakuch client
-    and dispatch them to the target host
-
-    """
-    protocol = ReceiverProtocol
-
-    def set_target(self, target):
-        """
-        ..target:: The DispatchFactory instance that will be connect to the target host
-        """
-        self.target = target
-
-    def buildProtocol(self, addr):
-        p = self.protocol(self.target)
-        return p
-
-
-class DispatchProtocol(protocol.Protocol, KObject):
-    """
-    Dispatch protocol just dispatch the recieved data from the receiver factory
-    and pass them to target host
-
-    .. dispatcher:: An instance of Receiver factory
-    """
-
-    def __init__(self, dispatcher):
-        self.dispatcher = dispatcher
-
-    def dataReceived(self, data):
-        self.logger.debug("Data: %s" % data)
-        self.dispatcher.send(data)
-
-
-class DispatchClientFactory(protocol.ClientFactory, KObject):
-    """
-    This class placed between target host and Dispatcher code and deliver the
-    client data to the target.
-    """
-    protocol = DispatchProtocol
-    client = None
-
-    def set_receiver(self, receiver):
-        """
-        Set the ReceiverFactory instance of this class
-
-        .. receiver:: An instance of Receiver factory
-        """
-        self.receiver = receiver
-
-    def buildProtocol(self, addr):
-        p = self.protocol(self.receiver)
-        self._protocol = p
-        return p
-
-    def send(self, data):
-        self.logger.debug("Client: %s" % self.receiver)
-        self._protocol.transport.write(data)
-
-
-
-
 class ProxyClientProtocol(protocol.Protocol, KObject):
     """
     """
@@ -125,6 +40,7 @@ class ProxyClientProtocol(protocol.Protocol, KObject):
 
         elif self.cli_queue:
             self.logger.info("Client: writing %d bytes to peer" % len(chunk))
+            self.logger.debug("Data: %s" % chunk)
             self.transport.write(chunk)
             self.cli_queue.get().addCallback(self.server_data_received)
 
@@ -174,6 +90,7 @@ class ProxyProtocol(protocol.Protocol, KObject):
 
     def client_data_received(self, chunk):
         self.transport.write(chunk)
+        self.logger.debug("Data: %s" % chunk)
         self.logger.info("Server: writing %d bytes to original client" % len(chunk))
         self.srv_queue.get().addCallback(self.client_data_received)
 
