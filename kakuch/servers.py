@@ -19,7 +19,7 @@
 
 from twisted.internet import reactor
 
-from kakuch.base import SSLDispatcher
+from kakuch.ssl import SSLDispatcher
 from kakuch.protocols import ReceiverFactory, DispatchClientFactory
 
 

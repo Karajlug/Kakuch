@@ -94,7 +94,7 @@ class DispatchProtocol(protocol.Protocol, KObject):
         self.dispatcher = dispatcher
 
     def dataReceived(self, data):
-        self.logger.debug("Send data to %s" % self.dispatcher)
+        self.logger.debug("Data: %s" % data)
         self.dispatcher.send(data)
 
 
@@ -119,6 +119,7 @@ class DispatchFactory(protocol.Factory, KObject):
         return p
 
     def send(self, data):
+        self.logger.debug("Client: %s" % self.client)
         self.client.transport.write(data)
 
 

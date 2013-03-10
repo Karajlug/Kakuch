@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -----------------------------------------------------------------------------
 #    Kakuch - Traffic wrapper application
 #    Copyright (C) 2013 Sameer Rahmani <lxsameer@gnu.org>
@@ -18,8 +17,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # -----------------------------------------------------------------------------
 import logging
-
-from kakuch.factories import SSLContextFactory
 
 
 class KObject(object):
@@ -46,8 +43,7 @@ class BaseDispatcher(KObject):
     """
     def __init__(self, config={}, target_host="127.0.0.1",
                  target_port="7777", my_host="127.0.0.1",
-                 my_port="8888", sslkey=None, sslcert=None,
-                 cacert=None):
+                 my_port="8888"):
 
         self.config = config
 
@@ -56,50 +52,3 @@ class BaseDispatcher(KObject):
 
         self.my_host = self.config.get("my_host", my_host)
         self.my_port = self.config.get("my_port", my_port)
-
-
-class SSLDispatcher(BaseDispatcher):
-    """
-    This dispatcher class use SSL mutual authentication (2way SSL authentication).
-    To provide a secure and authenticated tunnel. In mutual authentication server
-    and client authenticate against each other.
-
-    .. sslkey:: SSL private key to use. Private key should belongs to the current
-                node.
-    .. sslcert:: SSL certificate to use. Certificate file should belongs to current
-                 node and be signed by CA private key.
-    .. cacert:: The certificate file of CA.
-    """
-    def __init__(self, sslkey=None, sslcert=None, cacert=None,
-                 **kwargs):
-
-        super(SSLDispatcher, self).__init__(**kwargs)
-        self.key = self.config.get("sslkey", sslkey)
-        self.cert = self.config.get("sslcert", sslcert)
-        self.cacert = self.config.get("cacert", cacert)
-
-
-        should_exit = False
-
-        if not self.key:
-            self.logger.critical("Running on 'ssl' mode without SSL private key?")
-            should_exit = True
-
-        if not self.cert:
-            self.logger.critical("Running on 'ssl' mode without SSL certificate?")
-            should_exit = True
-
-        if not self.cacert:
-            self.logger.critical("Running on 'ssl' mode using mutual authentication without CA certificate?")
-            should_exit = True
-
-        if should_exit:
-            exit(1)
-
-        self.logger.info("SSL KEY: %s" % self.key)
-        self.logger.info("SSL CERT: %s" % self.cert)
-        self.logger.info("CA CERT: %s" % self.cacert)
-
-        self.context_factory = SSLContextFactory(self.key,
-                                                 self.cert)
-        self.context_factory.cacert = self.cacert
