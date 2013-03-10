@@ -1,0 +1,12 @@
+{
+    "log_file": "/tmp/kakuch_client.log",
+    "log_level": 40,
+    "client": true,
+    "sslcert": "/home/lxsameer/src/Kakuch/ssl/client/client.crt",
+    "sslkey": "/home/lxsameer/src/Kakuch/ssl/client/client.key",
+    "cacert": "/home/lxsameer/src/Kakuch/ssl/CA.crt",
+    "target_host": "127.0.0.1",
+    "target_port": "7777",
+    "my_host": "127.0.0.1",
+    "my_port": "8888"
+}

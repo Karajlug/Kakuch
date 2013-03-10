@@ -117,8 +117,8 @@ class Kakuch(object):
         client = self.config.get("client", False)
         if client:
             app = DispatchClient(config=self.config)
-
-        app = DispatchServer(config=self.config)
+        else:
+            app = DispatchServer(config=self.config)
 
         try:
             app.run()
