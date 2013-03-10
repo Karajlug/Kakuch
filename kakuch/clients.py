@@ -32,9 +32,16 @@ class DispatchClient(SSLDispatcher):
         super(DispatchClient, self).__init__(**kwargs)
 
         # TODO: Add a timeout support for connect method
-        connection = [reactor.connectSSL, {
-            "contextFactory": self.context_factory
-            }]
+        secure = self.config.get("secure", True)
+        connection = None
+
+        if secure:
+            connection = [reactor.connectSSL, {
+                "contextFactory": self.context_factory
+                }]
+        else:
+            connection = [reactor.connectTCP, {}]
+
         factory = ProxyFactory(target_host=self.target_host,
                                target_port=self.target_port,
                                connection_details=connection)

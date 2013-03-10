@@ -38,10 +38,16 @@ class DispatchServer(SSLDispatcher):
                                target_port=self.target_port,
                                connection_details=connection)
 
-        reactor.listenSSL(int(self.my_port),
-                          factory,
-                          self.context_factory,
-                          interface=self.my_host)
+        secure = self.config.get("secure", True)
+        if secure:
+            reactor.listenSSL(int(self.my_port),
+                              factory,
+                              self.context_factory,
+                              interface=self.my_host)
+        else:
+            reactor.listenTCP(int(self.my_port),
+                              factory,
+                              interface=self.my_host)
 
     def run(self):
 
