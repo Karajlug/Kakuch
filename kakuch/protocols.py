@@ -173,8 +173,8 @@ class ProxyProtocol(protocol.Protocol, KObject):
                      factory, **self.connect[1])
 
     def client_data_received(self, chunk):
-        self.logger.info("Server: writing %d bytes to original client" % len(chunk))
         self.transport.write(chunk)
+        self.logger.info("Server: writing %d bytes to original client" % len(chunk))
         self.srv_queue.get().addCallback(self.client_data_received)
 
     def dataReceived(self, chunk):
