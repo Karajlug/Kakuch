@@ -20,7 +20,7 @@
 from twisted.internet import reactor
 
 from kakuch.ssl import SSLDispatcher
-from kakuch.protocols import ReceiverClientFactory, DispatchFactory
+from kakuch.protocols import ProxyFactory
 
 
 class DispatchClient(SSLDispatcher):
@@ -29,22 +29,19 @@ class DispatchClient(SSLDispatcher):
     traffic to the dispatcher server and deliver back to client
     """
     def __init__(self, **kwargs):
-
         super(DispatchClient, self).__init__(**kwargs)
-        self.server = DispatchFactory()
-        self.receiver = ReceiverClientFactory()
 
-        self.receiver.set_target(self.server)
-        self.server.set_receiver(self.receiver)
+        # TODO: Add a timeout support for connect method
+        connection = [reactor.connectSSL, {
+            "contextFactory": self.context_factory
+            }]
+        factory = ProxyFactory(target_host=self.target_host,
+                               target_port=self.target_port,
+                               connection_details=connection)
 
         reactor.listenTCP(int(self.my_port),
-                          self.receiver,
+                          factory,
                           interface=self.my_host)
-
-        reactor.connectSSL(self.target_host,
-                           int(self.target_port),
-                           self.receiver,
-                           self.context_factory)
 
     def run(self):
 
